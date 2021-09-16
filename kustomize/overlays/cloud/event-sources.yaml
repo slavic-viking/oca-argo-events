@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: github
+spec:
+  service:
+    ports:
+      - port: 12000
+        targetPort: 12000
+  github:
+    github:
+      repositories:
+        - owner: slavic-viking
+          names:
+            - k8s-demo-app
+      webhook:
+        endpoint: /github
+        port: "12000"
+        method: POST
+        url: https://webhook.wostal.systems/github
+      events:
+        - "*"
+
+      apiToken:
+        name: github-access
+        key: token
+
+#      # webhookSecret refers to K8s secret that stores the github hook secret
+#      # +optional
+#      webhookSecret:
+#        # Name of the K8s secret that contains the hook secret
+#        name: github-access
+#        # Key within the K8s secret whose corresponding value (must be base64 encoded) is hook secret
+#        key: secret
+
+      insecure: true
+      active: true
+      contentType: json
+      
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: webhook-ingress
+  namespace: argo-events
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: webhook.wostal.systems
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - webhook.wostal.systems
+    secretName: eventsources-tls
+  rules:
+  - host: webhook.wostal.systems
+    http:
+      paths:
+      - path: /github
+        backend:
+          serviceName: github-eventsource-svc
+          servicePort: 12000
