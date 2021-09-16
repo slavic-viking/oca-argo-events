@@ -17,7 +17,7 @@ spec:
         endpoint: /github
         port: "12000"
         method: POST
-        url: https://webhook.wostal.systems/github
+        url: https://webhook.wostal.systems
       events:
         - "*"
 
@@ -55,7 +55,7 @@ spec:
   - host: webhook.wostal.systems
     http:
       paths:
-      - path: /
+      - path: /github
         backend:
           serviceName: github-eventsource-svc
           servicePort: 12000
