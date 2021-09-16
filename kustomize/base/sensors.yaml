@@ -9,7 +9,7 @@ spec:
   dependencies:
   - name: github
     eventSourceName: github
-    eventName: k8s-demo-app
+    eventName: github
   triggers:
   - template:
       name: trigger

@@ -1,4 +1,3 @@
----
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
@@ -6,44 +5,57 @@ metadata:
 spec:
   service:
     ports:
-    - port: 12000
-      targetPort: 12000
+      - port: 12000
+        targetPort: 12000
   github:
-    argo-combined-app:
-      owner: slavic-viking
-      repository: k8s-demo-app
+    github:
+      repositories:
+        - owner: slavic-viking
+          names:
+            - k8s-demo-app
       webhook:
-        endpoint: /k8s-demo-app
+        endpoint: /github
         port: "12000"
         method: POST
-        url: http://acme.com
+        url: https://webhook.wostal.systems/github
       events:
         - "*"
+
       apiToken:
         name: github-access
         key: token
+
+#      # webhookSecret refers to K8s secret that stores the github hook secret
+#      # +optional
+#      webhookSecret:
+#        # Name of the K8s secret that contains the hook secret
+#        name: github-access
+#        # Key within the K8s secret whose corresponding value (must be base64 encoded) is hook secret
+#        key: secret
+
       insecure: true
       active: true
       contentType: json
-
+      
 ---
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: github
+  name: webhook-ingress
+  namespace: argo-events
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    external-dns.alpha.kubernetes.io/hostname: webhook.wostal.systems
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
+  tls:
+  - hosts:
+    - webhook.wostal.systems
+    secretName: eventsources-tls
   rules:
-  - http:
+  - host: webhook.wostal.systems
+    http:
       paths:
-      - path: /
-        pathType: Prefix
+      - path: /github
         backend:
-          service:
-           name: github-eventsource-svc
-           port:
-             number: 12000
-    host: acme.com
+          serviceName: github-eventsource-svc
+          servicePort: 12000
