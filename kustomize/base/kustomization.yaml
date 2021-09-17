@@ -6,5 +6,6 @@ bases:
 resources:
   - namespace.yaml
   - event-bus.yaml
-  - rbac.yaml
+patchesStrategicMerge:
+- rbac.yaml
 namespace: argo-events
