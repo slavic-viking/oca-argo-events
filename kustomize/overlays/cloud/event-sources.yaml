@@ -13,6 +13,7 @@ spec:
         - owner: slavic-viking
           names:
             - k8s-demo-app
+            - wostal.eu
       webhook:
         endpoint: /github
         port: "12000"
